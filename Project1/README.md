@@ -1,3 +1,4 @@
+# Eight Puzzle Solver
 This program is written in C++, in order to compile and run it, please use the following command:
 
 g++ -std=c++11 eightPuzzle.cpp && ./a.out
