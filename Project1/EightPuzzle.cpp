@@ -66,6 +66,45 @@ bool checkGoalState(Grid grid){
     return true;
 }
 
+Grid makeGrid(const Grid& grid, Pair blankTile, Pair newPosition){
+    int temp;
+    Grid newGrid = grid;
+
+    temp = newGrid[newPosition.first][newPosition.second];
+    newGrid[newPosition.first][newPosition.second] = 0;
+    newGrid[blankTile.first][blankTile.second] = temp;
+
+    return newGrid;
+}
+
+void moveBlankTile(Node* node, int coord, int x, int y, bool isNegative){
+    Node* child = new Node();
+    Pair blankTile = node->blankTile;
+    Pair newPosition;   // The position of the balnk tile once it is moved
+    int newDir = isNegative ? coord - 1: coord + 1;
+
+    if(newDir >= 0 && newDir < 3){
+        newPosition = make_pair(blankTile.first + x, blankTile.second + y);
+        cout << "blank tile: " << newPosition.first << " " << newPosition.second << endl;
+
+        child->parent = node;
+        child->grid = makeGrid(node->grid, blankTile, newPosition);
+        cout << "New grid:\n";
+
+        printGrid(child->grid);
+    }
+
+}
+
+void expandState(Node* front){
+    Node* child = new Node();
+    Pair blankTile;
+
+    // Move blank tile up
+    moveBlankTile(front, front->blankTile.first, -1, 0, true);
+
+}
+
 void generalSearch(Node* initState){
     set<Grid> exploredSet;
 
@@ -94,7 +133,8 @@ void generalSearch(Node* initState){
         }
 
         cout << "The best state to expand with g(n) = " << frontNode->g << " and h(n) = " << frontNode->h << endl;
-        printGrid(grid);
+        expandState(frontNode);
+
     }
 }
 
