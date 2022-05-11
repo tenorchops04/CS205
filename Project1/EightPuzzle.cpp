@@ -15,8 +15,8 @@ typedef vector<vector<int> > Grid; // A 2-d vector is used as the puzzle grid
 typedef pair<int, int> Pair;
 
 int choice = 0;
-int numStatesExpanded = 0;
-int maxFrontierSize = 0;
+int numStatesExpanded = 0;  // Keeps track of the number of expanded states
+int maxQueueSize = 0;       // Keeps track of the maximum size of the queue
 
 struct Node{
     Grid grid;
@@ -33,12 +33,68 @@ struct Node{
     }
 };
 
+// Compare struct used so that the priority queue knows how to order the Nodes
+struct compareF{
+    bool operator()(Node* n1, Node* n2){
+        return n1->f > n2->f;
+    }
+};
+
 void printGrid(const Grid& grid){
     for(int i = 0; i < ROWS; i++){
         for(int j = 0; j < COLS; j++){
             cout << grid[i][j] << " ";
         }
         cout << endl;
+    }
+}
+
+// Compares a given state to the goal and returns true if they are the same
+bool checkGoalState(Grid grid){
+    Grid goalState = {
+        {1,2,3},
+        {4,5,6},
+        {7,8,0}
+    };
+
+    for(int i = 0; i < ROWS; i++){
+        for(int j = 0; j < COLS; j++){
+            if(grid[i][j] != goalState[i][j])
+                return false;
+        }
+    }
+    return true;
+}
+
+void generalSearch(Node* initState){
+    set<Grid> exploredSet;
+
+    priority_queue<Node*, vector<Node*>, compareF> q; // Queueing function meant to keep the nodes in the frontier
+    q.push(initState);   // Start the queue by inserting the initial state
+
+    bool isInitState = true;
+
+    while(!q.empty()){
+        if(q.size() > maxQueueSize)
+            maxQueueSize = q.size();
+        
+        Node* frontNode = q.top();
+        Grid grid = frontNode->grid;
+        q.pop();
+
+        // printGrid(frontNode->grid);
+
+        // Check if the goal state has been reached
+        bool isGoalState = checkGoalState(frontNode->grid);
+
+        if(isGoalState){
+            cout << "Goal!\n";
+            printGrid(frontNode->grid);
+            return;
+        }
+
+        cout << "The best state to expand with g(n) = " << frontNode->g << " and h(n) = " << frontNode->h << endl;
+        printGrid(grid);
     }
 }
 
@@ -94,8 +150,10 @@ int main(){
     initNode->grid = grid;
     initNode->blankTile = blankTile;
 
-    printGrid(grid);
-    cout << "blank tile: " << initNode->blankTile.first << ", " << initNode->blankTile.second << endl;
+    // printGrid(grid);
+    // cout << "blank tile: " << initNode->blankTile.first << ", " << initNode->blankTile.second << endl;
+
+    generalSearch(initNode);
 
     return 0;
 }
