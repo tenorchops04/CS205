@@ -77,63 +77,103 @@ Grid makeGrid(const Grid& grid, Pair blankTile, Pair newPosition){
     return newGrid;
 }
 
-void moveBlankTile(Node* node, int coord, int x, int y, bool isNegative, string direction){
+void moveBlankTile(Node* node, int coord, int x, int y, bool isNegative, string direction, vector<Node*>& children){
     Node* child = new Node();
     Pair blankTile = node->blankTile;
     Pair newPosition;   // The position of the balnk tile once it is moved
     int newDir = isNegative ? coord - 1: coord + 1;
 
     if(newDir >= 0 && newDir < 3){
-        newPosition = make_pair(blankTile.first + x, blankTile.second + y);
-        cout << "blank tile: " << newPosition.first << " " << newPosition.second << endl;
+        newPosition = make_pair(blankTile.first + x, blankTile.second + y); // Calculate the new position of the blank tile
+        // cout << "blank tile: " << newPosition.first << " " << newPosition.second << endl;
 
         child->parent = node;
         child->grid = makeGrid(node->grid, blankTile, newPosition);
-        cout << "New grid:\n";
+        child->blankTile = newPosition; // Update the blank tile
+        child->g = node->g + 1;
+
+        // cout << "New grid:\n";
 
         switch (heuristic)
         {
             // Heuristic is Uniform Cost Search, so h(n) = 0
         case 1:
-            cout << "Uniform Cost Search\n";
+            // cout << "Uniform Cost Search\n";
             break;
             // Missing Tile Heuristic
         case 2:
-            cout << "Missing Tile Heuristic\n";
+            // cout << "Missing Tile Heuristic\n";
             break;
             // Euclidean Distance Heuristic
         case 3:
-            cout << "Euclidean Distance Heuristic\n";
+            // cout << "Euclidean Distance Heuristic\n";
             break;
         default:
             break;
         }
+
+        child->f = child->h + child->g;
         child->op = "Moving blank tile " + direction + "\n";
-        cout << child->op;
-        printGrid(child->grid);
+        // cout << child->op;
+        // printGrid(child->grid);
+        children.push_back(child);
 
     }
 
 }
 
-void expandState(Node* node){
+void expandState(Node* node, vector<Node*>& children){
     Node* child = new Node();
     Pair blankTile;
 
     // Move blank tile up
-    moveBlankTile(node, node->blankTile.first, -1, 0, true, "up");
+    moveBlankTile(node, node->blankTile.first, -1, 0, true, "up", children);
     // Move blank tile down
-    moveBlankTile(node, node->blankTile.first, 1, 0, false, "down");
+    moveBlankTile(node, node->blankTile.first, 1, 0, false, "down", children);
     // Move blank tile right
-    moveBlankTile(node, node->blankTile.first, 0, 1, false, "to the right");
+    moveBlankTile(node, node->blankTile.second, 0, 1, false, "to the right", children);
     // Move blank tile left
-    moveBlankTile(node, node->blankTile.first, 0, -1, true, "to the left");
+    moveBlankTile(node, node->blankTile.second, 0, -1, true, "to the left", children);
 
+    numStatesExpanded++;
+
+    // for(auto c: children){
+    //     printGrid(c->grid);
+    //     cout << endl;
+    // }
+}
+
+void printTrace(Node* node){ 
+    Node* curr = node;
+    stack<Node*> sol;
+
+    while(curr != nullptr){
+        sol.push(curr);
+        curr = curr->parent;
+    }
+
+    while(!sol.empty()){
+        Node* top = sol.top();
+        cout << top->op << endl;
+        printGrid(top->grid);
+        cout << endl;
+        sol.pop();
+    }
+}
+
+void convertToSet(const priority_queue<Node*, vector<Node*>, compareF>& frontier, set<Grid> setFrontier){
+    priority_queue<Node*, vector<Node*>, compareF> temp = frontier;
+
+    while(!temp.empty()){
+        Grid grid = temp.top()->grid;
+        temp.pop();
+
+        setFrontier.insert(grid);
+    }
 }
 
 void generalSearch(Node* initState){
-    set<Grid> exploredSet;
-
+    set<Grid> visited;  // Keeps track of the nodes that we have already visited
     priority_queue<Node*, vector<Node*>, compareF> nodes; // Queueing function meant to keep the nodes in the frontier
     nodes.push(initState);   // Start the queue by inserting the initial state
 
@@ -150,17 +190,44 @@ void generalSearch(Node* initState){
         // printGrid(frontNode->grid);
 
         // Check if the goal state has been reached
-        bool isGoalState = goalTest(node->grid);
+        bool isGoalState = goalTest(grid);
 
         if(isGoalState){
-            cout << "Goal!\n";
-            printGrid(node->grid);
+            cout << "Goal state!\n";
+            printGrid(grid);
+
+            cout << "----------- SOLUTION TRACE -------------\n";
+            cout << "The solution depth was " << node->g << endl;
+            cout << "\nTo solve this problem, the search algorithm expanded a total of " << numStatesExpanded << " nodes\n";
+            cout << "The maximum number of nodes in the queue at any one time: " << maxQueueSize << endl << endl;
+            printTrace(node);
             return;
         }
 
         cout << "The best state to expand with g(n) = " << node->g << " and h(n) = " << node->h << endl;
-        expandState(node);
+        printGrid(grid);
+        cout << endl;
 
+        visited.insert(node->grid); // Mark the node as visited
+
+        vector<Node*> children; // Keeps track of the children that are found by expanding the node
+        expandState(node, children);
+
+        for(auto child: children){
+            set<Grid> setFrontier;
+            set<Grid>::iterator it1 = visited.find(child->grid);
+
+            // cout << "------------------\n";
+            // printGrid(child->grid);
+            // cout << endl;
+            // set<Grid>::iterator it2 = setFrontier.find(child->grid);
+
+            // convertToSet(nodes, setFrontier);
+
+            if(it1 == visited.end())
+                nodes.push(child);
+        }
+        // break;
     }
 }
 
