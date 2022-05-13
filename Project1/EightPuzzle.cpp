@@ -14,7 +14,7 @@ using namespace std;
 typedef vector<vector<int> > Grid; // A 2-d vector is used as the puzzle grid
 typedef pair<int, int> Pair;
 
-int choice = 0;
+int heuristic = 0;          // Choice of heuristic to use
 int numStatesExpanded = 0;  // Keeps track of the number of expanded states
 int maxQueueSize = 0;       // Keeps track of the maximum size of the queue
 
@@ -50,7 +50,7 @@ void printGrid(const Grid& grid){
 }
 
 // Compares a given state to the goal and returns true if they are the same
-bool checkGoalState(Grid grid){
+bool goalTest(Grid grid){
     Grid goalState = {
         {1,2,3},
         {4,5,6},
@@ -77,7 +77,7 @@ Grid makeGrid(const Grid& grid, Pair blankTile, Pair newPosition){
     return newGrid;
 }
 
-void moveBlankTile(Node* node, int coord, int x, int y, bool isNegative){
+void moveBlankTile(Node* node, int coord, int x, int y, bool isNegative, string direction){
     Node* child = new Node();
     Pair blankTile = node->blankTile;
     Pair newPosition;   // The position of the balnk tile once it is moved
@@ -91,49 +91,75 @@ void moveBlankTile(Node* node, int coord, int x, int y, bool isNegative){
         child->grid = makeGrid(node->grid, blankTile, newPosition);
         cout << "New grid:\n";
 
+        switch (heuristic)
+        {
+            // Heuristic is Uniform Cost Search, so h(n) = 0
+        case 1:
+            cout << "Uniform Cost Search\n";
+            break;
+            // Missing Tile Heuristic
+        case 2:
+            cout << "Missing Tile Heuristic\n";
+            break;
+            // Euclidean Distance Heuristic
+        case 3:
+            cout << "Euclidean Distance Heuristic\n";
+            break;
+        default:
+            break;
+        }
+        child->op = "Moving blank tile " + direction + "\n";
+        cout << child->op;
         printGrid(child->grid);
+
     }
 
 }
 
-void expandState(Node* front){
+void expandState(Node* node){
     Node* child = new Node();
     Pair blankTile;
 
     // Move blank tile up
-    moveBlankTile(front, front->blankTile.first, -1, 0, true);
+    moveBlankTile(node, node->blankTile.first, -1, 0, true, "up");
+    // Move blank tile down
+    moveBlankTile(node, node->blankTile.first, 1, 0, false, "down");
+    // Move blank tile right
+    moveBlankTile(node, node->blankTile.first, 0, 1, false, "to the right");
+    // Move blank tile left
+    moveBlankTile(node, node->blankTile.first, 0, -1, true, "to the left");
 
 }
 
 void generalSearch(Node* initState){
     set<Grid> exploredSet;
 
-    priority_queue<Node*, vector<Node*>, compareF> q; // Queueing function meant to keep the nodes in the frontier
-    q.push(initState);   // Start the queue by inserting the initial state
+    priority_queue<Node*, vector<Node*>, compareF> nodes; // Queueing function meant to keep the nodes in the frontier
+    nodes.push(initState);   // Start the queue by inserting the initial state
 
-    bool isInitState = true;
+    // bool isInitState = true;
 
-    while(!q.empty()){
-        if(q.size() > maxQueueSize)
-            maxQueueSize = q.size();
+    while(!nodes.empty()){
+        if(nodes.size() > maxQueueSize)
+            maxQueueSize = nodes.size();
         
-        Node* frontNode = q.top();
-        Grid grid = frontNode->grid;
-        q.pop();
+        Node* node = nodes.top();
+        Grid grid = node->grid;
+        nodes.pop();
 
         // printGrid(frontNode->grid);
 
         // Check if the goal state has been reached
-        bool isGoalState = checkGoalState(frontNode->grid);
+        bool isGoalState = goalTest(node->grid);
 
         if(isGoalState){
             cout << "Goal!\n";
-            printGrid(frontNode->grid);
+            printGrid(node->grid);
             return;
         }
 
-        cout << "The best state to expand with g(n) = " << frontNode->g << " and h(n) = " << frontNode->h << endl;
-        expandState(frontNode);
+        cout << "The best state to expand with g(n) = " << node->g << " and h(n) = " << node->h << endl;
+        expandState(node);
 
     }
 }
@@ -192,6 +218,14 @@ int main(){
 
     // printGrid(grid);
     // cout << "blank tile: " << initNode->blankTile.first << ", " << initNode->blankTile.second << endl;
+
+    cout << "Select the heuristic to be used:\n";
+    cout << "1) Uniform Cost Search\n";
+    cout << "2) A* with the Misplaced Tile Heuristic\n";
+    cout << "3) A* with the Eulcidean Distance Heuristic\n\n";
+
+    cin >> heuristic;
+    cout << endl;
 
     generalSearch(initNode);
 
