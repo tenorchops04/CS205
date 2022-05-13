@@ -66,7 +66,7 @@ bool goalTest(Grid grid){
     return true;
 }
 
-double euclideanDistanceHeuristic(Grid grid){
+double manhattanDistanceHeuristic(Grid grid){
     double h = 0;
 
     Grid goal = {
@@ -77,33 +77,32 @@ double euclideanDistanceHeuristic(Grid grid){
 
     for(int i = 0; i < ROWS; i++){
         for(int j = 0; j < COLS; j++){
-            if(grid[i][j] != goal[i][j]){
-                int tile = grid[i][j];
-
+            int tile = grid[i][j];
+            if(tile != goal[i][j]){
                 switch(tile){
                     case 1:
-                        h += sqrt(pow(i - 0,2) + pow(j - 0, 2));
+                        h += abs(i-0) + abs(j-0);
                         break;
                     case 2:
-                        h += sqrt(pow(i - 0,2) + pow(j - 1, 2));
+                        h += abs(i-0) + abs(j-1);
                         break;
                     case 3:
-                        h += sqrt(pow(i - 0,2) + pow(j - 2, 2));
+                        h += abs(i-0) + abs(j-2);
                         break;
                     case 4:
-                        h += sqrt(pow(i - 1,2) + pow(j - 0, 2));
+                        h += abs(i-1) + abs(j-0);
                         break;
                     case 5:
-                        h += sqrt(pow(i - 1,2) + pow(j - 1, 2));
+                        h += abs(i-1) + abs(j-1);
                         break;
                     case 6:
-                        h += sqrt(pow(i - 1,2) + pow(j - 2, 2));
+                        h += abs(i-1) + abs(j-2);
                         break;
                     case 7:
-                        h += sqrt(pow(i - 2,2) + pow(j - 0, 2));
+                        h += abs(i-2) + abs(j-0);
                         break;
                     case 8:
-                        h += sqrt(pow(i - 2,2) + pow(j - 1, 2));
+                        h += abs(i-2) + abs(j-1);
                         break;
                     default:
                         break;
@@ -112,8 +111,8 @@ double euclideanDistanceHeuristic(Grid grid){
         }
     }
     return h;
-
 }
+
 double missingTileHeuristic(Grid grid){
     double h = 0;
 
@@ -169,9 +168,9 @@ void moveBlankTile(Node* node, int coord, int x, int y, bool isNegative, string 
         case 2:
             child->h = missingTileHeuristic(grid);
             break;
-            // Euclidean Distance Heuristic
+            // Manhattan Distance Heuristic
         case 3:
-            child->h = euclideanDistanceHeuristic(grid);
+            child->h = manhattanDistanceHeuristic(grid);
             break;
         default:
             break;
@@ -317,13 +316,10 @@ int main(){
     initNode->grid = grid;
     initNode->blankTile = blankTile;
 
-    // printGrid(grid);
-    // cout << "blank tile: " << initNode->blankTile.first << ", " << initNode->blankTile.second << endl;
-
     cout << "Select the heuristic to be used:\n";
     cout << "1) Uniform Cost Search\n";
     cout << "2) A* with the Misplaced Tile Heuristic\n";
-    cout << "3) A* with the Eulcidean Distance Heuristic\n\n";
+    cout << "3) A* with the Manhattan Distance Heuristic\n\n";
 
     cin >> heuristic;
     cout << endl;
