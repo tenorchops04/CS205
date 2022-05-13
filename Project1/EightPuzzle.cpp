@@ -66,7 +66,74 @@ bool goalTest(Grid grid){
     return true;
 }
 
-Grid makeGrid(const Grid& grid, Pair blankTile, Pair newPosition){
+double euclideanDistanceHeuristic(Grid grid){
+    double h = 0;
+
+    Grid goal = {
+        {1,2,3},
+        {4,5,6},
+        {7,8,0}
+    };
+
+    for(int i = 0; i < ROWS; i++){
+        for(int j = 0; j < COLS; j++){
+            if(grid[i][j] != goal[i][j]){
+                int tile = grid[i][j];
+
+                switch(tile){
+                    case 1:
+                        h += sqrt(pow(i - 0,2) + pow(j - 0, 2));
+                        break;
+                    case 2:
+                        h += sqrt(pow(i - 0,2) + pow(j - 1, 2));
+                        break;
+                    case 3:
+                        h += sqrt(pow(i - 0,2) + pow(j - 2, 2));
+                        break;
+                    case 4:
+                        h += sqrt(pow(i - 1,2) + pow(j - 0, 2));
+                        break;
+                    case 5:
+                        h += sqrt(pow(i - 1,2) + pow(j - 1, 2));
+                        break;
+                    case 6:
+                        h += sqrt(pow(i - 1,2) + pow(j - 2, 2));
+                        break;
+                    case 7:
+                        h += sqrt(pow(i - 2,2) + pow(j - 0, 2));
+                        break;
+                    case 8:
+                        h += sqrt(pow(i - 2,2) + pow(j - 1, 2));
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+    }
+    return h;
+
+}
+double missingTileHeuristic(Grid grid){
+    double h = 0;
+
+    Grid goal = {
+        {1,2,3},
+        {4,5,6},
+        {7,8,0}
+    };
+
+    for(int i = 0; i < ROWS; i++){
+        for(int j = 0; j < COLS; j++){
+            if(grid[i][j] != goal[i][j])
+                h++;
+        }
+    }
+
+    return h;
+}
+
+Grid makeNode(const Grid& grid, Pair blankTile, Pair newPosition){
     int temp;
     Grid newGrid = grid;
 
@@ -87,23 +154,24 @@ void moveBlankTile(Node* node, int coord, int x, int y, bool isNegative, string 
         newPosition = make_pair(blankTile.first + x, blankTile.second + y); // Calculate the new position of the blank tile
 
         child->parent = node;
-        child->grid = makeGrid(node->grid, blankTile, newPosition);
+        child->grid = makeNode(node->grid, blankTile, newPosition);
         child->blankTile = newPosition; // Update the blank tile
         child->g = node->g + 1;
+
+        Grid grid = child->grid;
 
         switch (heuristic)
         {
             // Heuristic is Uniform Cost Search, so h(n) = 0
         case 1:
-            // cout << "Uniform Cost Search\n";
             break;
             // Missing Tile Heuristic
         case 2:
-            // cout << "Missing Tile Heuristic\n";
+            child->h = missingTileHeuristic(grid);
             break;
             // Euclidean Distance Heuristic
         case 3:
-            // cout << "Euclidean Distance Heuristic\n";
+            child->h = euclideanDistanceHeuristic(grid);
             break;
         default:
             break;
@@ -111,15 +179,12 @@ void moveBlankTile(Node* node, int coord, int x, int y, bool isNegative, string 
 
         child->f = child->h + child->g;
         child->op = "Moving blank tile " + direction + "\n";
-        // cout << child->op;
-        // printGrid(child->grid);
         children.push_back(child);
-
     }
 
 }
 
-void expandState(Node* node, vector<Node*>& children){
+void Expand(Node* node, vector<Node*>& children){
     Node* child = new Node();
     Pair blankTile;
 
@@ -188,16 +253,16 @@ void generalSearch(Node* initState){
         visited.insert(node->grid); // Mark the node as visited
 
         vector<Node*> children; // Keeps track of the children that are found by expanding the node
-        expandState(node, children);
+        Expand(node, children);
 
         for(auto child: children){
-            set<Grid> setFrontier;
             set<Grid>::iterator it1 = visited.find(child->grid);
 
             if(it1 == visited.end())
                 nodes.push(child);
         }
     }
+    cout << "failure\n";
 }
 
 int main(){
