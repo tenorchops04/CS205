@@ -85,14 +85,11 @@ void moveBlankTile(Node* node, int coord, int x, int y, bool isNegative, string 
 
     if(newDir >= 0 && newDir < 3){
         newPosition = make_pair(blankTile.first + x, blankTile.second + y); // Calculate the new position of the blank tile
-        // cout << "blank tile: " << newPosition.first << " " << newPosition.second << endl;
 
         child->parent = node;
         child->grid = makeGrid(node->grid, blankTile, newPosition);
         child->blankTile = newPosition; // Update the blank tile
         child->g = node->g + 1;
-
-        // cout << "New grid:\n";
 
         switch (heuristic)
         {
@@ -136,11 +133,6 @@ void expandState(Node* node, vector<Node*>& children){
     moveBlankTile(node, node->blankTile.second, 0, -1, true, "to the left", children);
 
     numStatesExpanded++;
-
-    // for(auto c: children){
-    //     printGrid(c->grid);
-    //     cout << endl;
-    // }
 }
 
 void printTrace(Node* node){ 
@@ -161,23 +153,10 @@ void printTrace(Node* node){
     }
 }
 
-void convertToSet(const priority_queue<Node*, vector<Node*>, compareF>& frontier, set<Grid> setFrontier){
-    priority_queue<Node*, vector<Node*>, compareF> temp = frontier;
-
-    while(!temp.empty()){
-        Grid grid = temp.top()->grid;
-        temp.pop();
-
-        setFrontier.insert(grid);
-    }
-}
-
 void generalSearch(Node* initState){
     set<Grid> visited;  // Keeps track of the nodes that we have already visited
     priority_queue<Node*, vector<Node*>, compareF> nodes; // Queueing function meant to keep the nodes in the frontier
     nodes.push(initState);   // Start the queue by inserting the initial state
-
-    // bool isInitState = true;
 
     while(!nodes.empty()){
         if(nodes.size() > maxQueueSize)
@@ -186,8 +165,6 @@ void generalSearch(Node* initState){
         Node* node = nodes.top();
         Grid grid = node->grid;
         nodes.pop();
-
-        // printGrid(frontNode->grid);
 
         // Check if the goal state has been reached
         bool isGoalState = goalTest(grid);
@@ -217,17 +194,9 @@ void generalSearch(Node* initState){
             set<Grid> setFrontier;
             set<Grid>::iterator it1 = visited.find(child->grid);
 
-            // cout << "------------------\n";
-            // printGrid(child->grid);
-            // cout << endl;
-            // set<Grid>::iterator it2 = setFrontier.find(child->grid);
-
-            // convertToSet(nodes, setFrontier);
-
             if(it1 == visited.end())
                 nodes.push(child);
         }
-        // break;
     }
 }
 
