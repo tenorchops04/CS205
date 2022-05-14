@@ -22,7 +22,7 @@ struct Node{
     Grid grid;
     Node* parent; // For backtracking, points to the parent of the curr node
     Pair blankTile; // Keeps track of the location of the blank tile for this node
-    double f,g,h;
+    int f,g,h;
     string op;
 
     Node(){
@@ -66,8 +66,8 @@ bool goalTest(Grid grid){
     return true;
 }
 
-double manhattanDistanceHeuristic(Grid grid){
-    double h = 0;
+int manhattanDistanceHeuristic(Grid grid){
+    int h = 0;
 
     Grid goal = {
         {1,2,3},
@@ -113,8 +113,8 @@ double manhattanDistanceHeuristic(Grid grid){
     return h;
 }
 
-double missingTileHeuristic(Grid grid){
-    double h = 0;
+int misplacedTileHeuristic(Grid grid){
+    int h = 0;
 
     Grid goal = {
         {1,2,3},
@@ -164,9 +164,9 @@ void moveBlankTile(Node* node, int coord, int x, int y, bool isNegative, string 
             // Heuristic is Uniform Cost Search, so h(n) = 0
         case 1:
             break;
-            // Missing Tile Heuristic
+            // Misplaced Tile Heuristic
         case 2:
-            child->h = missingTileHeuristic(grid);
+            child->h = misplacedTileHeuristic(grid);
             break;
             // Manhattan Distance Heuristic
         case 3:
@@ -236,11 +236,11 @@ void generalSearch(Node* initState){
         if(isGoalState){
             cout << "Goal state!\n";
             printGrid(grid);
-
+            cout << "\nThe solution depth was " << node->g;
+            cout << "\nNumber of nodes expanded: " << numStatesExpanded;
+            cout << "\nMax queue size: " << maxQueueSize << endl << endl;
             cout << "----------- SOLUTION TRACE -------------\n";
-            cout << "The solution depth was " << node->g << endl;
-            cout << "\nTo solve this problem, the search algorithm expanded a total of " << numStatesExpanded << " nodes\n";
-            cout << "The maximum number of nodes in the queue at any one time: " << maxQueueSize << endl << endl;
+            
             printTrace(node);
             return;
         }
@@ -261,7 +261,7 @@ void generalSearch(Node* initState){
                 nodes.push(child);
         }
     }
-    cout << "failure\n";
+    cout << "Failure\n";
 }
 
 int main(){
